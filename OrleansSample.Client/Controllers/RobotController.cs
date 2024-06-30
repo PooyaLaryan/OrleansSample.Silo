@@ -9,27 +9,31 @@ namespace OrleansSample.Client.Controllers
     public class RobotController : ControllerBase
     {
         private readonly ILogger<RobotController> _logger;
-        private readonly IRobotGrain robotGrain;
+        private readonly IClusterClient _client;
 
         public RobotController(
             ILogger<RobotController> logger, 
             IClusterClient client)
         {
             _logger = logger;
-            robotGrain = client.GetGrain<IRobotGrain>("Robot");
+            _client = client;
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("robot/{name}/instruction")]
+        public Task<string> Get(string name)
         {
-            return Ok(robotGrain.GetPrimaryKeyString());
+            var grain = this._client.GetGrain<IRobotGrainStateless>(name);
+            return grain.GetNextInstruction();
         }
 
-        [HttpGet("GetInstructionCount")]
-        public async Task<IActionResult> GetInstructionCount()
+        [HttpPost]
+        [Route("robot/{name}/instruction")]
+        public async Task<IActionResult> Post(string name, string value)
         {
-            var result = await robotGrain.GetInstructionCount();
-            return Ok(result);
+            var grain = this._client.GetGrain<IRobotGrainStateless>(name);
+            await grain.AddInstruction(value);
+            return Ok();
         }
     }
 }

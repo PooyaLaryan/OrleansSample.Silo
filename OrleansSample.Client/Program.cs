@@ -2,13 +2,11 @@ using Orleans.Configuration;
 using Orleans;
 using OrleansSample.IGrains;
 using Orleans.Hosting;
+using OrleansSample.Grains;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,6 +18,7 @@ var client = new ClientBuilder()
         options.ServiceId = "my-orleans-service";
     })
     .ConfigureLogging(logging => logging.AddConsole())
+    .AddSimpleMessageStreamProvider("SMSProvider")
     .Build();
 
 await client.Connect();
